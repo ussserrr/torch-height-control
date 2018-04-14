@@ -322,10 +322,7 @@ ISR (PCINT0_vect) {
 				}
 			}
 			// ignore short clicks in bypass mode
-			if ( eeprom_read_byte(&bypass_ON_flag_EEPROM) ) {
-				// toggle_bypass_cnt = 0;
-				return;
-			}
+			if ( eeprom_read_byte(&bypass_ON_flag_EEPROM) ) return;
 
 
 			/*
