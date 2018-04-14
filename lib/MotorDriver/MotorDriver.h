@@ -12,9 +12,11 @@
 #define STEP_PIN PC3
 #define DIR_PIN PC2
 
+// in milliseconds
 #define PERIOD 1500
 #define PULSE 20
 
+// for internal usage
 #define MOTOR_STOP MOTOR_DRIVER_PORT&=(~((1<<STEP_PIN)|(1<<DIR_PIN)))
 
 

@@ -61,20 +61,20 @@ ISR (TIMER2_COMPA_vect) {
 
 void motor_up(void) {
 	motor_up_flag = true;
-	// Enable interrupt for motor timer
+	// enable interrupt for motor timer
 	TIMSK2 |= (1<<OCIE2A);
 }
 
 
 void motor_down(void) {
 	motor_up_flag = false;
-	// Enable interrupt for motor timer
+	// enable interrupt for motor timer
 	TIMSK2 |= (1<<OCIE2A);
 }
 
 
 void motor_stop(void) {
-	// Disable interrupt for motor timer
+	// disable interrupt for motor timer
 	TIMSK2 &= ~(1<<OCIE2A);
 	MOTOR_STOP;
 }
