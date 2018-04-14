@@ -20,7 +20,7 @@
 // Abstraction layer for the way we rule the motor. There can be a driver
 // for a stepper motor plus set of switches, a stepper motor with
 // "intelligent" step-direction driver, simply DC motor or whatever you wants to.
-#include <MotorControl.h>
+#include <MotorDriver.h>
 
 
 /*

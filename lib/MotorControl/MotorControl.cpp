@@ -33,7 +33,7 @@ void motor_move(int16_t steps) {
 		}
 	}
 
-	if (steps < 0) {
+	else if (steps < 0) {
 		for (steps_cnt=steps; steps_cnt<0; steps_cnt++) {
 			MOTOR_PORT = 1 << (last_step+MOTOR_PINS_OFFSET);
 			_delay_us(MOTOR_PULSE_TIME);
