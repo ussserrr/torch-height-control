@@ -11,10 +11,10 @@
 uint16_t lift_before_cut;
 uint16_t EEMEM lift_before_cut_EEPROM = 150;
 // Pierce time is measured in ELEMENTARY_DELAYs which in turn is measured in ms
-uint8_t delay_before_regulation;
-#define DELAY_BEFORE_REGULATION_ELEMENTARY_DELAY 100  // 100 ms
-#define DELAY_BEFORE_REGULATION_MAX_TIME 50  // 50*ELEMENTARY_DELAY = 5s max
-uint8_t EEMEM delay_before_regulation_EEPROM = 20;  // 20*ELEMENTARY_DELAY = 2000ms
+uint8_t pierce_time;
+#define PIERCE_TIME_ELEMENTARY_DELAY 100  // 100 ms
+#define PIERCE_TIME_MAX_TIME 50  // 50*ELEMENTARY_DELAY = 5s max
+uint8_t EEMEM pierce_time_EEPROM = 20;  // 20*ELEMENTARY_DELAY = 2000ms
 // Flag of the "bypass mode" without regulation. We explicitly use uint8_t type
 // (instead of bool) because AVR's EEPROM driver has function for that
 uint8_t EEMEM bypass_ON_flag_EEPROM = 0;
@@ -78,7 +78,7 @@ int main(void) {
 	 */
 	setpoint_offset = eeprom_read_word(&setpoint_offset_EEPROM);
 	lift_before_cut = eeprom_read_word(&lift_before_cut_EEPROM);
-	delay_before_regulation = eeprom_read_byte(&delay_before_regulation_EEPROM);
+	pierce_time = eeprom_read_byte(&pierce_time_EEPROM);
 
 	/*
 	 *  Set directions of IOs
@@ -244,7 +244,7 @@ ISR (TIMER1_COMPA_vect) {
 			sprintf(bufferA, "sp: %0.2fV+-%3umV", ADC_REFERENCE_VOLTAGE*setpoint/1023,
 												  (uint16_t)(1000*ADC_REFERENCE_VOLTAGE*setpoint_offset/1023));
 			sprintf(bufferB, "lft%u dlay%u", lift_before_cut,
-											 delay_before_regulation*DELAY_BEFORE_REGULATION_ELEMENTARY_DELAY);
+											 pierce_time*PIERCE_TIME_ELEMENTARY_DELAY);
 			lcd.clear();
 			lcd.print(bufferA);
 			// turn off LCD timer interrupt
@@ -267,9 +267,9 @@ ISR (TIMER1_COMPA_vect) {
 			sprintf(bufferB, "%3umV", (uint16_t)(1000*ADC_REFERENCE_VOLTAGE*setpoint_offset/1023));
 			break;
 
-		case DELAY_BEFORE_REGULATION_MENU:
-			delay_before_regulation = map(adc_read(ADC_SETTINGS_PIN), 0, 1023, 0, DELAY_BEFORE_REGULATION_MAX_TIME);
-			sprintf(bufferB, "%5ums", delay_before_regulation*DELAY_BEFORE_REGULATION_ELEMENTARY_DELAY);
+		case PIERCE_TIME_MENU:
+			pierce_time = map(adc_read(ADC_SETTINGS_PIN), 0, 1023, 0, PIERCE_TIME_MAX_TIME);
+			sprintf(bufferB, "%5ums", pierce_time*PIERCE_TIME_ELEMENTARY_DELAY);
 			break;
 	}
 
@@ -334,7 +334,7 @@ ISR (PCINT0_vect) {
 
 			if (menu == IDLE_MENU) {
 				// save previous parameter in EEPROM on button press
-				eeprom_update_byte(&delay_before_regulation_EEPROM, delay_before_regulation);
+				eeprom_update_byte(&pierce_time_EEPROM, pierce_time);
 				// turn on plasm interrupt only in Idle mode
 				PCMSK0 |= (1<<PLASM_SIGNAL_INT);
 			}
@@ -349,9 +349,9 @@ ISR (PCINT0_vect) {
 					eeprom_update_word(&lift_before_cut_EEPROM, lift_before_cut);
 					sprintf(bufferA, "offset (%u):", (uint16_t)(1000*ADC_REFERENCE_VOLTAGE*setpoint_offset/1023));
 				}
-				else if (menu == DELAY_BEFORE_REGULATION_MENU) {
+				else if (menu == PIERCE_TIME_MENU) {
 					eeprom_update_word(&setpoint_offset_EEPROM, setpoint_offset);
-					sprintf(bufferA, "delay (%u):", delay_before_regulation*DELAY_BEFORE_REGULATION_ELEMENTARY_DELAY);
+					sprintf(bufferA, "delay (%u):", pierce_time*PIERCE_TIME_ELEMENTARY_DELAY);
 				}
 
 				lcd.clear();
@@ -440,10 +440,10 @@ ISR (PCINT0_vect) {
 			// can't affect the measurements)
 			lcd.clear();
 			lcd.print("pierce...");
-			uint8_t delay_before_regulation_cnt = delay_before_regulation;
+			uint8_t pierce_time_cnt = pierce_time;
 			do {
-				_delay_ms(DELAY_BEFORE_REGULATION_ELEMENTARY_DELAY);
-			} while (--delay_before_regulation_cnt);
+				_delay_ms(PIERCE_TIME_ELEMENTARY_DELAY);
+			} while (--pierce_time_cnt);
 
 			// If you see this, it means very noisy signal and/or too many points for setpoint definition
 			// (NUM_OF_VALUES_FOR_SETPOINT_DEFINITION), and/or very small interval for averaging (OFFSET_FOR_AVRG)
