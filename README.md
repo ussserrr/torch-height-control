@@ -1,5 +1,5 @@
 # torch-height-control
-CNC plugin for the plasma torch height controlling on the base of Arduino (ATmega328P MCU). Can be used to improve cutting quality of bent and distorted metal plates. Regulator intercepts Z-axis (vertical) movement of a torch. Bypass mode is provided for cases when control is unneeded. Main idea is to determine current height by measuring a voltage of the plasma arc: the higher the voltage, the greater the distance.
+CNC plugin for the plasma torch height controlling on the base of Arduino (ATmega328P MCU). Can be used to improve cutting quality of bent and distorted metal plates. Regulator intercepts Z-axis (vertical) movement of a torch. Bypass mode is provided for cases when control is unneeded. Main idea is to determine the current height by measuring a voltage of the plasma arc: the higher the voltage, the greater the distance.
 
 
 ## Features
@@ -15,11 +15,11 @@ CNC plugin for the plasma torch height controlling on the base of Arduino (ATmeg
   - Preserving parameters after power off.
 
 
-## Logic' description
+## Logic description
   1. CNC or user performs initial positioning (e.g. motion to the entry point);
   2. After Plasm signal presence torch going down until the Touch signal is appeared;
   3. Torch immediately lifting to the pierce height (specified parameter);
-  4. Torch is holded at this position for the entire pierce time (specified parameter);
+  4. Torch is holding on at this position for the entire pierce time (specified parameter);
   5. After setpoint calculation, then main control algorithm starts;
   6. System goes back to the Idle mode when the cutting is complete (Plasm signal is turning off).
 
@@ -56,7 +56,7 @@ Straightforward driver that uses Timer2 to manually switches corresponding phase
 #### MotorDriver
 Library for usage with "smart" drivers that controlled by 2 signals: STEP and DIRECTION. It also uses Timer2 to form STEP pulses sequence. Other parameters that you should adjust to match your driver are period and pulsewidth.
 
-#### Display
+### Display
 THC uses Arduino's LiquidCrystal library to manage LCD (HD44780, its derivatives and other compatible ones). Timer1 is used for refreshing information on the screen when it's needed (e.g. in Working mode or in the settings menu). By default LCD is connected to PD1-7 pins with following pinout (Arduino notation in the brackets):
   - PD4 (4) - DB4;
   - PD5 (5) - DB5;
@@ -67,7 +67,7 @@ THC uses Arduino's LiquidCrystal library to manage LCD (HD44780, its derivatives
   - PD3 (3) - E.
 
 
-## User' parameters
+## User parameters
 Before flashing the firmware you can check and set some related parameters. Most of them are located in `TorchHeightControl.cpp/h` files:
   - I/Os and default signals' port state (in case of reassigning);
   - Cutting height is measured in steps of stepper motor (0-1023). EEMEM is the default value at the flash time. Actually, not so important because we can always change it at runtime;
@@ -78,3 +78,49 @@ Before flashing the firmware you can check and set some related parameters. Most
   - Interval of voltages for specifing setpoint offset in settings menus;
   - Prescaler for dividing frequency of algorithm' timer in its ISR;
   - Hysteresis for averaging only close results of ADC measurements;
+
+
+## Build and flash
+It's recommended to use [PlatformIO](https://platformio.org) for building and flashing as all-in-one solution.
+
+### CLI
+Change settings in `platformio.ini` file if needed (for example, specify whether use programming unit or not). Then in the same directory run:
+```sh
+$ pio run  # build
+
+$ pio run -t program  # flash using usbasp
+or
+$ pio run -t upload  # flash using on-board programmer
+
+$ pio run -t uploadeep  # write EEPROM
+```
+
+
+### IDE (Atom or VSCode)
+  1. Import project: `File` -> `Add Project Folder`;
+  2. Change settings in `platformio.ini` file if needed (for example, specify whether use programming unit or not);
+  3. Build: `PlatformIO` -> `Build`;
+  4. Open built-in terminal and run:
+     ```sh
+     $ pio run -t program; pio run -t uploadeep
+     ```
+     or for Arduino board:
+     ```sh
+     $ pio run -t upload; pio run -t uploadeep
+     ```
+
+
+## Usage
+After reset, LCD displays Idle mode. It contains current settings of setpoint hysteresis, the cutting height `lft` (in steps) and the pierce time `dlay`. Cycle through the settings menu by pressing settings button till you get back to the Idle mode. Current value of each parameter is indicated in the brackets. Use your potentiometer to adjust values.
+
+After Plasm ON signal, `start...` string is appears. After touching the metal, `pierce...` lasts entire pierce time. Then `define sp...` is appeared on short time during which setpoint is defining. Finally, working mode follows and the first LCD line displays measured setpoint and the second displays current averaged arc voltage. If the `define sp...` string lasts too long it means that whether the number of values for setpoint definition is too high or the offset for averaging is too small or an arc signal is just too noisy.
+
+After cutting completes, Idle mode will also display last measured setpoint.
+
+To enter (and to exit) Bypass mode press and hold Settings button for 8 seconds. LCD will display `regulation off` string. THC then will respond only to Up/Down signals. Bypass mode state is saved after resets and power offs.
+
+
+## Notes
+See states diagram (UML) in `torch-height-control-uml.*` files (created with [draw.io](https://draw.io)).
+
+Behavior of THC when multiple signals are applied is undefined in general and depends on the order of corresponding handlers in the `PCINT0_vect` ISR. Because of the `if - else if` construction execution of multiple code blocks is impossible but such conditions are still not recommended. However, at normal operating, those cases are not met.

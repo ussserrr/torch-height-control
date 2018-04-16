@@ -1,6 +1,3 @@
-TODO:
-	  Пересчитывать шаги начального подъема в расстояние начального подъема в миллиметрах (будет зависеть от мотора и механики)
-	  Реагировать на касание: в IDLE не делать ничего, в WORK отъезжать повыше. Предусмотреть случаи уже случившегося касания при включении плазмы и "зарывания" при резе
-	  Мб вынести некотрые определения в отдельный .h
-	  Пересчитывать feedback в настоящее напряжение дуги
-	  Заменить TIMSK0 |= (1<<OCIE0A); и TIMSK1 |= (1<<OCIE1A); на start_control; и start_lcd; соответственно
+  - Convert Pierce height from steps to distance (but then it will be dependent on certain motor and mechanics);
+  - Handle touches when cutting (reduce "pecks" into the metal);
+  - Convert feedback ADC value to actual arc voltage.
