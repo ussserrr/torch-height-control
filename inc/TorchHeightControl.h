@@ -52,7 +52,7 @@ uint8_t signals_port_history = 0xFF;
 enum Menu {
 	WORK_MENU,
 	IDLE_MENU,
-	LIFT_BEFORE_CUT_MENU,
+	cutting_height_MENU,
 	SETPOINT_OFFSET_MENU,
 	PIERCE_TIME_MENU,
 

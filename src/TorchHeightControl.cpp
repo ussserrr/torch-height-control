@@ -8,8 +8,8 @@
 // Lift before cut is measured in steps of stepper motor (0-1023).
 // EEMEM is the default value at the flash time. Actually, not so important
 // because we always can change it at runtime
-uint16_t lift_before_cut;
-uint16_t EEMEM lift_before_cut_EEPROM = 150;
+uint16_t cutting_height;  // cutting_height
+uint16_t EEMEM cutting_height_EEPROM = 150;
 // Pierce time is measured in ELEMENTARY_DELAYs which in turn is measured in ms
 uint8_t pierce_time;
 #define PIERCE_TIME_ELEMENTARY_DELAY 100  // 100 ms
@@ -30,7 +30,7 @@ bool setpoint_defined = false;
 // hysteresis for control algorithm (setpoint ± setpoint_offset)
 uint16_t setpoint_offset;
 uint16_t EEMEM setpoint_offset_EEPROM = 20;  // 97mV
-// interval of voltages for setting setpoint offset in settings menus, Volts
+// interval of voltages for specifing setpoint offset in settings menus, Volts
 #define SETPOINT_OFFSET_MIN_SET_VOLTAGE 0.010
 #define SETPOINT_OFFSET_MAX_SET_VOLTAGE 0.200
 
@@ -45,10 +45,10 @@ uint16_t feedback_prev = 0;  // previous ADC value
 uint32_t feedback_accum = 0;  // accumulator for averaging
 uint16_t feedback_accum_cnt = 0;  // counter of num of values for averaging
 uint16_t feedback_avrg = 0;
-// counter for manually dividing frequency of algo' timer in its ISR
+// counter for manual dividing frequency of algo' timer in its ISR
 uint8_t prescaler_cnt = 0;
 #define PRESCALER_MAIN_ALGO 50
-// hysteresis for averaging only similar results of ADC measurements
+// hysteresis for averaging only close results of ADC measurements
 #define OFFSET_FOR_AVRG 10  // ±48mV
 
 
@@ -77,7 +77,7 @@ int main(void) {
 	 *  Retrieve values from EEPROM
 	 */
 	setpoint_offset = eeprom_read_word(&setpoint_offset_EEPROM);
-	lift_before_cut = eeprom_read_word(&lift_before_cut_EEPROM);
+	cutting_height = eeprom_read_word(&cutting_height_EEPROM);
 	pierce_time = eeprom_read_byte(&pierce_time_EEPROM);
 
 	/*
@@ -243,7 +243,7 @@ ISR (TIMER1_COMPA_vect) {
 		case IDLE_MENU:
 			sprintf(bufferA, "sp: %0.2fV+-%3umV", ADC_REFERENCE_VOLTAGE*setpoint/1023,
 												  (uint16_t)(1000*ADC_REFERENCE_VOLTAGE*setpoint_offset/1023));
-			sprintf(bufferB, "lft%u dlay%u", lift_before_cut,
+			sprintf(bufferB, "lft%u dlay%u", cutting_height,
 											 pierce_time*PIERCE_TIME_ELEMENTARY_DELAY);
 			lcd.clear();
 			lcd.print(bufferA);
@@ -253,11 +253,11 @@ ISR (TIMER1_COMPA_vect) {
 
 		// For the next 3 menu entries first string (bufferA) was printed outside this ISR
 		// (at settings button ISR) so we only need to handle second row
-		case LIFT_BEFORE_CUT_MENU:
+		case cutting_height_MENU:
 			// We don't map this, the default interval 0-1023 is OK for us
 			// since ~200 steps is a one full revolution
-			lift_before_cut = adc_read(ADC_SETTINGS_PIN);
-			sprintf(bufferB, "%4u steps", lift_before_cut);
+			cutting_height = adc_read(ADC_SETTINGS_PIN);
+			sprintf(bufferB, "%4u steps", cutting_height);
 			break;
 
 		case SETPOINT_OFFSET_MENU:
@@ -342,11 +342,11 @@ ISR (PCINT0_vect) {
 				// turn off plasm interrupt in settings mode
 				PCMSK0 &= ~(1<<PLASM_SIGNAL_INT);
 
-				if (menu == LIFT_BEFORE_CUT_MENU) {
-					sprintf(bufferA, "lift (%u):", lift_before_cut);
+				if (menu == cutting_height_MENU) {
+					sprintf(bufferA, "lift (%u):", cutting_height);
 				}
 				else if (menu == SETPOINT_OFFSET_MENU) {
-					eeprom_update_word(&lift_before_cut_EEPROM, lift_before_cut);
+					eeprom_update_word(&cutting_height_EEPROM, cutting_height);
 					sprintf(bufferA, "offset (%u):", (uint16_t)(1000*ADC_REFERENCE_VOLTAGE*setpoint_offset/1023));
 				}
 				else if (menu == PIERCE_TIME_MENU) {
@@ -434,7 +434,7 @@ ISR (PCINT0_vect) {
 			// turn off touch tracking
 			PCMSK0 &= ~(1<<TOUCH_SIGNAL_INT);
 			// lift to desired distance of cutting the metal
-			motor_move(lift_before_cut);
+			motor_move(cutting_height);
 
 			// Wait a bit for pierce (torch is fully burning and all metal droplets
 			// can't affect the measurements)
