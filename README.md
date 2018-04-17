@@ -85,7 +85,7 @@ It's recommended to use [PlatformIO](https://platformio.org) for building and fl
 
 ### CLI
 Change settings in `platformio.ini` file if needed (for example, specify whether use programming unit or not). Then in the same directory run:
-```sh
+```bash
 $ pio run  # build
 
 $ pio run -t program  # flash using usbasp
@@ -101,7 +101,7 @@ $ pio run -t uploadeep  # write EEPROM
   2. Change settings in `platformio.ini` file if needed (for example, specify whether use programming unit or not);
   3. Build: `PlatformIO` -> `Build`;
   4. Open built-in terminal and run:
-     ```sh
+     ```bash
      $ pio run -t program; pio run -t uploadeep
      ```
      or for Arduino board:
