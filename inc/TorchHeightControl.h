@@ -50,13 +50,13 @@ uint8_t signals_port_history = 0xFF;
  *  Menu definitions
  */
 enum Menu {
-	WORK_MENU,
-	IDLE_MENU,
-	cutting_height_MENU,
-	SETPOINT_OFFSET_MENU,
-	PIERCE_TIME_MENU,
+    WORK_MENU,
+    IDLE_MENU,
+    cutting_height_MENU,
+    SETPOINT_OFFSET_MENU,
+    PIERCE_TIME_MENU,
 
-	NUM_OF_MENUS
+    NUM_OF_MENUS
 };
 uint8_t menu = IDLE_MENU;  // initial state
 
@@ -81,9 +81,9 @@ char bufferB[BUFFER_SIZE];  // 2nd raw of LCD
  */
 // #define TEST_LED
 #ifdef TEST_LED
-	#define TEST_LED_DDR DDRB
-	#define TEST_LED_PORT PORTB
-	#define TEST_LED_PIN PB5
+    #define TEST_LED_DDR DDRB
+    #define TEST_LED_PORT PORTB
+    #define TEST_LED_PIN PB5
 #endif
 
 
