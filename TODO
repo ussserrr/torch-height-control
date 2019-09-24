@@ -1,3 +1,4 @@
   - Convert Pierce height from steps to distance (but then it will be dependent on certain motor and mechanics);
   - Handle touches when cutting (reduce "pecks" into the metal);
-  - Convert feedback ADC value to actual arc voltage.
+  - Convert feedback ADC value to actual arc voltage;
+  - Take out all platform-dependent parts and make the actual library generic.
